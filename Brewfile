@@ -1,0 +1,14 @@
+# Kyle's personal macOS apps, appended to Juliet's Brewfile.
+tap "basecamp/tap"
+tap "vorssaint/tap"
+
+cask "basecamp/tap/hey"
+cask "kaleidoscope"
+cask "keycastr"
+cask "notion-calendar"
+cask "obsidian"
+cask "soundsource"
+cask "tolaria"
+cask "via"
+cask "vorssaint/tap/vorssaint"
+cask "zen"
