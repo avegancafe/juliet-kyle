@@ -54,6 +54,7 @@ setup-zola-mcp() {
   fi
 
   register-zola-mcp "$runner"
+  register-zola-mcp-claude-code "$runner"
 
   # Only check that a token exists; never read it out.
   local has_token=1
@@ -70,6 +71,29 @@ setup-zola-mcp() {
       notice "  secret-tool store --label='Zola usr cookie' service zola-mcp account usr"
     fi
   fi
+}
+
+# Claude Code (the CLI, and the desktop app's Code tab) doesn't read Claude
+# Desktop's config, so register the same launcher at user scope there too.
+# The user-scope list lives in ~/.claude.json; read it to stay idempotent, but
+# write through the CLI rather than editing that file.
+register-zola-mcp-claude-code() {
+  local runner="$1"
+  if ! command -v claude > /dev/null 2>&1; then
+    skip "Claude Code isn't installed — not registering Zola there"
+    return
+  fi
+  local current=""
+  [[ -f "$HOME/.claude.json" ]] \
+    && current=$(jq -r '.mcpServers.zola.command // empty' "$HOME/.claude.json" 2> /dev/null)
+  if [[ "$current" == "$runner" ]]; then
+    skip "Zola in Claude Code (already registered)"
+    return
+  fi
+  [[ -n "$current" ]] && claude mcp remove --scope user zola > /dev/null 2>&1
+  spin "Registering Zola in Claude Code..." claude mcp add --scope user zola -- "$runner" \
+    || bootstrap_error "Failed to add Zola to Claude Code" \
+      "Run manually: claude mcp add --scope user zola -- $runner"
 }
 
 # Adds mcpServers.zola to Claude Desktop's config, keeping every other key.

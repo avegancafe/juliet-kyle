@@ -24,7 +24,7 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 |------|--------------|
 | `Brewfile` | Personal macOS apps (HEY CLI, Obsidian, Zen, SoundSource, …) and their taps |
 | `gitconfig` | `[github] user = avegancafe` |
-| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill; builds the Zola MCP server and registers it in Claude Desktop |
+| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill; builds the Zola MCP server and registers it in Claude Desktop and Claude Code |
 | `zola-mcp/run` | Claude Desktop's launcher for Zola: reads the Zola token from the OS keychain and starts the pinned build |
 | `.env.template` | Keys this setup reads from `~/.config/local/.env`. Blank values only, never secrets |
 
@@ -51,7 +51,8 @@ curl -fsSL https://raw.githubusercontent.com/avegancafe/juliet-kyle/main/migrate
 [chrischall/zola-mcp](https://github.com/chrischall/zola-mcp) server, pinned to
 an audited tag (`ZOLA_MCP_VERSION` in `bootstrap.bash`; bumping it means
 re-auditing), into `~/.local/share/zola-mcp`. It then adds it to Claude
-Desktop's config. The token stays in the OS keychain, never in a file. Store it
+Desktop's config (the Chat tab) and to Claude Code at user scope (the CLI and
+the Code tab, which don't read Desktop's config). The token stays in the OS keychain, never in a file. Store it
 once: copy the `usr` cookie from zola.com (DevTools → Application → Cookies;
 it lasts about a year), then run:
 
@@ -60,6 +61,8 @@ secret-tool store --label='Zola usr cookie' service zola-mcp account usr   # Fed
 security add-generic-password -s zola-mcp -a usr -w                          # macOS
 ```
 
-Restart Claude Desktop afterwards. About half the write tools (vendors, budget,
+Then fully quit Claude Desktop (tray → Quit, not just closing the window) and
+reopen it. A running Desktop rewrites its config from memory, so if Zola is
+missing, re-run `juliet-bootstrap --enable=extension` while Desktop is closed. About half the write tools (vendors, budget,
 seating, inquiries, invitations, website theme) have no confirmation step of
 their own, so leave them on "ask" in Desktop's tool permissions.
