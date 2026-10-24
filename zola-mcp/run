@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Launches the Zola MCP server for Claude Desktop (registered by setup-zola-mcp
+# in ../bootstrap.bash). The Zola sign-in token lives in the OS keychain, not
+# in Claude's config file: this reads it, then hands off to the pinned build.
+#
+# Store the token once (the `usr` cookie from zola.com → DevTools →
+# Application → Cookies; it lasts about a year):
+#   Fedora: secret-tool store --label="Zola usr cookie" service zola-mcp account usr
+#   macOS:  security add-generic-password -s zola-mcp -a usr -w
+set -euo pipefail
+
+install_dir="${ZOLA_MCP_DIR:-$HOME/.local/share/zola-mcp}"
+
+# Claude Desktop starts servers with a bare GUI PATH, which on macOS misses
+# Homebrew's node.
+PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.nodenv/shims:$PATH"
+
+case "$(uname)" in
+  Darwin) token=$(security find-generic-password -s zola-mcp -a usr -w 2> /dev/null || true) ;;
+  *) token=$(secret-tool lookup service zola-mcp account usr 2> /dev/null || true) ;;
+esac
+
+if [[ -z "$token" ]]; then
+  echo "zola-mcp: no Zola token in the keychain. Store it with the command at the top of $0." >&2
+  exit 1
+fi
+
+# Env-var auth only: no browser-extension fallback, and nothing cached to disk.
+export ZOLA_REFRESH_TOKEN="$token"
+export ZOLA_DISABLE_FETCHPROXY=1
+export ZOLA_TOKEN_CACHE=false
+exec node "$install_dir/dist/bundle.js"
