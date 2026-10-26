@@ -1,5 +1,6 @@
 # Kyle's personal macOS apps, appended to Juliet's Brewfile.
 tap "basecamp/tap"
+tap "supercmdlabs/supercmd"
 tap "vorssaint/tap"
 
 cask "basecamp/tap/hey"
@@ -8,6 +9,7 @@ cask "keycastr"
 cask "notion-calendar"
 cask "obsidian"
 cask "soundsource"
+cask "supercmdlabs/supercmd/supercmd"
 cask "tolaria"
 cask "via"
 cask "vorssaint/tap/vorssaint"

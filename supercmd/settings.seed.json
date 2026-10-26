@@ -1,0 +1,14 @@
+{
+  "commandHotkeys": {
+    "ext-linear-todos-list": "Command+Control+L",
+    "ext-linear-todos-remind": "Command+Control+R",
+    "system-clipboard-manager": "Command+Control+V",
+    "system-emoji-picker": "Command+Space",
+    "system-search-notes": "Command+Control+N",
+    "system-window-management-left": "Command+Control+Left",
+    "system-window-management-right": "Command+Control+Right",
+    "system-window-management-fill": "Command+Control+Up",
+    "system-window-management-center-80": "Command+Control+Shift+Up"
+  },
+  "commandAliases": {}
+}
