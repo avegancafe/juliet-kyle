@@ -107,10 +107,13 @@ configure-supercmd() {
   fi
 
   substep "Configuring SuperCmd..."
+  # baseColor is SuperCmd's only theme knob: Bamboo's background, from
+  # Juliet's etc/themes/raycast-bamboo-theme.json.
   # shellcheck disable=SC2016 # $seed is a jq variable
   _supercmd-merge "$dir/settings.json" "SuperCmd settings" \
     --slurpfile seed "$seed" \
     '.globalShortcut = "Command+Control+F15"
+     | .baseColor = "#252623"
      | .hyperKey = ((.hyperKey // {}) + {enabled: false})
      | .navigationStyle = "vim"
      | .commandHotkeys = ((.commandHotkeys // {}) + ($seed[0].commandHotkeys // {}))
