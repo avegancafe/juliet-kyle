@@ -1,0 +1,21 @@
+{
+  "globalShortcut": "command",
+  "hyperKeyEnabled": false,
+  "shortcuts": {
+    "resize_fullscreen": "command+control+up",
+    "resize_left_half": "command+control+left",
+    "resize_right_half": "command+control+right",
+    "resize_top_half": "control+option+up",
+    "resize_bottom_half": "control+option+down",
+    "resize_top_left": "control+option+u",
+    "resize_top_right": "control+option+i",
+    "resize_bottom_left": "control+option+j",
+    "resize_bottom_right": "control+option+k",
+    "move_next_screen": "control+option+command+right",
+    "move_previous_screen": "control+option+command+left",
+    "lock": "command+option+q",
+    "scratchpad": "command+control+n",
+    "emoji_picker": "command+control+space",
+    "clipboard_manager": "command+control+v"
+  }
+}

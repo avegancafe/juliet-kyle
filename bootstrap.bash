@@ -3,7 +3,7 @@
 
 extension-setup() {
   setup-hey
-  configure-supercmd
+  configure-sol
   setup-flipper-udev
 }
 
@@ -80,77 +80,43 @@ setup-hey() {
       "Run manually: hey skill install"
 }
 
-# SuperCmd (SuperCmdLabs/SuperCmd) is installed by the Brewfile cask. This step
-# seeds a curated subset of its settings rather than stowing them: the app
-# rewrites settings.json at runtime, and that file can hold a plaintext AI-key
-# fallback, so it never goes in git. Only non-secret keys are merged here; the
-# rest (extension prefs, oauth-tokens.json, AI keys) stays app-owned. The app
-# overwrites settings.json when it quits, so the step skips while it's running.
-# Quicklinks and snippets aren't seeded yet: they come from the Raycast import.
-# SUPERCMD_DATA_DIR overrides the data dir (for testing against a copy).
-configure-supercmd() {
+# Sol (ospfranco/sol) is installed by the Brewfile cask. Its portable settings
+# live in ~/.config/sol/config.json (runtime state is in state.json beside it),
+# but Sol rewrites config.json atomically on every settings change, which would
+# replace a stow symlink — so this step merges a tracked seed into it instead.
+# The seed's shortcuts map is complete, because Sol uses it in place of its
+# defaults rather than on top of them. Sol overwrites config.json while it
+# runs, so the step skips until it's quit. SOL_CONFIG_DIR overrides the dir
+# (for testing against a copy).
+configure-sol() {
   if ! is-macos; then
     return
   fi
-  local dir="${SUPERCMD_DATA_DIR:-$HOME/Library/Application Support/SuperCmd}"
-  local seed="$EXTENSION_DIR/supercmd/settings.seed.json"
+  local dir="${SOL_CONFIG_DIR:-$HOME/.config/sol}"
+  local seed="$EXTENSION_DIR/sol/config.seed.json"
   if ! command -v jq > /dev/null 2>&1; then
-    warn "jq not found — skipping SuperCmd settings."
+    warn "jq not found — skipping Sol settings."
     return
   fi
-  if [[ ! -f "$dir/settings.json" ]]; then
-    skip "SuperCmd settings (launch SuperCmd once so it creates them)"
-    return
-  fi
-  if pgrep -x SuperCmd > /dev/null 2>&1; then
-    skip "SuperCmd settings (SuperCmd is running; quit it and run juliet-bootstrap --enable=extension)"
+  if pgrep -x sol > /dev/null 2>&1; then
+    skip "Sol settings (Sol is running; quit it and run juliet-bootstrap --enable=extension)"
     return
   fi
 
-  substep "Configuring SuperCmd..."
-  # baseColor is SuperCmd's only theme knob: Bamboo's background, from
-  # Juliet's etc/themes/raycast-bamboo-theme.json.
-  # shellcheck disable=SC2016 # $seed is a jq variable
-  _supercmd-merge "$dir/settings.json" "SuperCmd settings" \
-    --slurpfile seed "$seed" \
-    '.globalShortcut = "Command+Control+F15"
-     | .baseColor = "#252623"
-     | .hyperKey = ((.hyperKey // {}) + {enabled: false})
-     | .navigationStyle = "vim"
-     | .commandHotkeys = ((.commandHotkeys // {}) + ($seed[0].commandHotkeys // {}))
-     | .commandAliases = ((.commandAliases // {}) + ($seed[0].commandAliases // {}))'
-
-  # Kyle's own Raycast extension isn't in the store; SuperCmd loads it from its
-  # source checkout. customExtensionFolders is per-machine (settings.local.json).
-  local linear_todos="$HOME/workspace/linear-todos/raycast-extension"
-  if [[ ! -d "$linear_todos" ]]; then
-    skip "linear-todos extension folder (no checkout at $linear_todos)"
+  substep "Configuring Sol..."
+  mkdir -p "$dir"
+  [[ -f "$dir/config.json" ]] || echo '{}' > "$dir/config.json"
+  local out
+  if ! out=$(jq --slurpfile seed "$seed" '. + $seed[0]' "$dir/config.json"); then
+    bootstrap_error "Failed to update Sol settings" "Check $dir/config.json is valid JSON, then re-run juliet-bootstrap --enable=extension"
     return
   fi
-  [[ -f "$dir/settings.local.json" ]] || echo '{}' > "$dir/settings.local.json"
-  # shellcheck disable=SC2016 # $a and $folder are jq variables
-  _supercmd-merge "$dir/settings.local.json" "SuperCmd extension folders" \
-    --arg folder "$linear_todos" \
-    '.customExtensionFolders = ((.customExtensionFolders // []) as $a
-       | if ($a | index([$folder])) then $a else $a + [$folder] end)'
-}
-
-# _supercmd-merge <file> <label> <jq args...> <filter>: apply a jq filter in
-# place, reporting "up to date" when it changes nothing. Writes through the
-# existing file (cat >) so its mode is kept.
-_supercmd-merge() {
-  local file="$1" label="$2" out
-  shift 2
-  if ! out=$(jq "$@" "$file"); then
-    bootstrap_error "Failed to update $label" "Check $file is valid JSON, then re-run juliet-bootstrap --enable=extension"
+  if [[ "$out" == "$(jq . "$dir/config.json")" ]]; then
+    skip "Sol settings (up to date)"
     return
   fi
-  if [[ "$out" == "$(jq . "$file")" ]]; then
-    skip "$label (up to date)"
-    return
-  fi
-  printf '%s\n' "$out" > "$file"
-  notice "Updated $label"
+  printf '%s\n' "$out" > "$dir/config.json"
+  notice "Updated Sol settings"
 }
 
 # Flipper Zero serial access for ufbt / qFlipper (Fedora). /dev/ttyACM* is
