@@ -4,6 +4,7 @@
 extension-setup() {
   setup-hey
   configure-supercmd
+  setup-flipper-udev
 }
 
 # The HEY CLI ships an agent skill, and the skill is the reason this step
@@ -150,4 +151,34 @@ _supercmd-merge() {
   fi
   printf '%s\n' "$out" > "$file"
   notice "Updated $label"
+}
+
+# Flipper Zero serial access for ufbt / qFlipper (Fedora). /dev/ttyACM* is
+# root:dialout 0660 and kyle isn't in dialout; a uaccess udev rule grants the
+# active seat user an ACL instead, scoped to just the Flipper (serial + DFU).
+# macOS needs nothing. Reloading + triggering applies it to a plugged-in
+# Flipper; a replug also works.
+setup-flipper-udev() {
+  is-fedora || return 0
+
+  local src="$EXTENSION_DIR/etc/udev/42-flipperzero.rules"
+  local dest=/etc/udev/rules.d/42-flipperzero.rules
+  if cmp -s "$src" "$dest"; then
+    skip "Flipper Zero udev rule (up to date)"
+    return
+  fi
+
+  substep "Installing Flipper Zero udev rule..."
+  if ! sudo install -D -m 644 "$src" "$dest"; then
+    bootstrap_error "Failed to install $dest" \
+      "Copy it manually: sudo install -D -m 644 $src $dest"
+    return
+  fi
+  if sudo udevadm control --reload-rules \
+    && sudo udevadm trigger --subsystem-match=tty --subsystem-match=usb; then
+    notice "Replug the Flipper if it still can't be opened"
+  else
+    bootstrap_error "Failed to reload udev rules" \
+      "Run: sudo udevadm control --reload-rules, then replug the Flipper"
+  fi
 }

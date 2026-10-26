@@ -1,0 +1,11 @@
+# Managed by Juliet: installed to /etc/udev/rules.d/42-flipperzero.rules by
+# juliet-kyle bootstrap.bash :: setup-flipper-udev. Edit here, not in /etc.
+# Gives the logged-in seat user access to a Flipper Zero (ufbt, qFlipper)
+# without joining dialout. uaccess must be tagged before 73-seat-late.rules.
+
+# Normal mode: USB serial (CDC ACM). 0483:5740 is ST's generic VCP ID, so
+# match the manufacturer too rather than granting every STM32 serial device.
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", ATTRS{manufacturer}=="Flipper Devices Inc.", TAG+="uaccess"
+
+# Recovery / firmware update: STM32 DFU bootloader.
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", TAG+="uaccess"
