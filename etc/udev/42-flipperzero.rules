@@ -1,5 +1,5 @@
 # Managed by Juliet: installed to /etc/udev/rules.d/42-flipperzero.rules by
-# juliet-kyle bootstrap.bash :: setup-flipper-udev. Edit here, not in /etc.
+# juliet-kyle bootstrap.bash :: setup-kyle-flipper-udev. Edit here, not in /etc.
 # Gives the logged-in seat user access to a Flipper Zero (ufbt, qFlipper)
 # without joining dialout. uaccess must be tagged before 73-seat-late.rules.
 

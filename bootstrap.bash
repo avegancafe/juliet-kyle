@@ -2,9 +2,9 @@
 # last, as the `extension` category (juliet-bootstrap --enable=extension).
 
 extension-setup() {
-  setup-hey
-  configure-sol
-  setup-flipper-udev
+  setup-kyle-hey
+  setup-kyle-sol
+  setup-kyle-flipper-udev
 }
 
 # The HEY CLI ships an agent skill, and the skill is the reason this step
@@ -16,7 +16,7 @@ extension-setup() {
 # checksum- and signature-verified binary into ~/.local/bin. Nothing here is
 # stowed: hey owns its own files (the skill carries a `managed by hey-cli`
 # marker and is versioned, so re-running refreshes it after a `hey upgrade`).
-setup-hey() {
+setup-kyle-hey() {
   # Resolve first: on Fedora the vendor installer drops the binary in
   # ~/.local/bin, which fish puts on PATH (env.fish) but a bash bootstrap that
   # predates that setup may not have yet.
@@ -88,7 +88,7 @@ setup-hey() {
 # defaults rather than on top of them. Sol overwrites config.json while it
 # runs, so the step skips until it's quit. SOL_CONFIG_DIR overrides the dir
 # (for testing against a copy).
-configure-sol() {
+setup-kyle-sol() {
   if ! is-macos; then
     return
   fi
@@ -124,7 +124,7 @@ configure-sol() {
 # active seat user an ACL instead, scoped to just the Flipper (serial + DFU).
 # macOS needs nothing. Reloading + triggering applies it to a plugged-in
 # Flipper; a replug also works.
-setup-flipper-udev() {
+setup-kyle-flipper-udev() {
   is-fedora || return 0
 
   local src="$EXTENSION_DIR/etc/udev/42-flipperzero.rules"
