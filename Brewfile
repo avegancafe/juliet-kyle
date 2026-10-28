@@ -3,6 +3,7 @@ tap "basecamp/tap"
 tap "vorssaint/tap"
 
 cask "basecamp/tap/hey"
+cask "crest-browser"
 cask "kaleidoscope"
 cask "keycastr"
 cask "notion-calendar"
