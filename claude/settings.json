@@ -1,0 +1,68 @@
+{
+  "model": "opus",
+  "outputStyle": "Concise",
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "medium"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "advisorModel": "opus",
+  "promptSuggestionEnabled": false,
+  "awaySummaryEnabled": false,
+  "askUserQuestionTimeout": "never",
+  "pluginConfigs": {
+    "beadwork@avegancafe-marketplace": {
+      "options": {
+        "openOnStart": true
+      }
+    }
+  },
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark-daltonized",
+  "verbose": true,
+  "fileCheckpointingEnabled": false,
+  "remoteControlAtStartup": false,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Linear__get_issue",
+      "mcp__notion__notion-search",
+      "mcp__notion__notion-fetch",
+      "mcp__notion__notion-get-comments",
+      "mcp__notion__notion-get-teams",
+      "mcp__notion__notion-get-users",
+      "mcp__claude_ai_Granola__*"
+    ],
+    "defaultMode": "plan"
+  },
+  "enabledPlugins": {
+    "kitchen-brigade@avegancafe-marketplace": true,
+    "beadwork@avegancafe-marketplace": true,
+    "avegancafe@avegancafe-marketplace": true,
+    "session-management@avegancafe-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "avegancafe-marketplace": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/avegancafe/avegancafe-marketplace.git"
+      },
+      "autoUpdate": true
+    }
+  }
+}
