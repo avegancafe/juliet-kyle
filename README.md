@@ -27,6 +27,7 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 | `Flatpakfile` | Personal Flatpak apps (Zen, Slack, Spotify) |
 | `claude/settings.json` | Personal Claude Code settings layered over Juliet's: model, effort, theme, output style, plan mode, the avegancafe marketplace and its plugins |
 | `home/.local/share/applications/claude-duet.desktop` | Fedora launcher entry: opens claude.ai/duet in its own Chromium app window (Claude Duet has no Linux app) |
+| `home/.config/autostart/claude-duet.desktop` | Fedora login autostart: opens Claude Duet when the session starts (Juliet's niri rule puts it on the coding workspace) |
 | `gitconfig` | `[github] user = avegancafe` |
 | `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill |
 | `.env.template` | Keys this setup reads from `~/.config/local/.env`. Blank values only, never secrets |
