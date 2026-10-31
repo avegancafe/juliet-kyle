@@ -23,6 +23,8 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 | File | What it does |
 |------|--------------|
 | `Brewfile` | Personal macOS apps (HEY CLI, Obsidian, Zen, SoundSource, …) and their taps |
+| `DNFfile` | Personal Fedora packages (Chromium, for the Claude Duet app window) |
+| `home/.local/share/applications/claude-duet.desktop` | Fedora launcher entry: opens claude.ai/duet in its own Chromium app window (Claude Duet has no Linux app) |
 | `gitconfig` | `[github] user = avegancafe` |
 | `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill |
 | `.env.template` | Keys this setup reads from `~/.config/local/.env`. Blank values only, never secrets |
