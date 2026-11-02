@@ -281,8 +281,8 @@ text/html=org.gnome.Epiphany.desktop;"
   # this script turns them into plain link clicks, which it sends to Zen.
   local user_js="$EXTENSION_DIR/etc/claude-duet/user-javascript.js"
   local js_schema="org.gnome.Epiphany.web:/org/gnome/epiphany/web-apps/$id/web/"
-  # Hides the window buttons in GNOME Web only (niri tiles it anyway); Juliet
-  # keeps them in every other GTK app.
+  # Hides GNOME Web's whole top bar (navigation, menus, window buttons), so
+  # the Duet window is just the page. Other GTK apps are untouched.
   local gtk_css="$EXTENSION_DIR/etc/claude-duet/gtk.css"
   local sandbox_gtk_css="$HOME/.var/app/org.gnome.Epiphany/config/gtk-4.0/gtk.css"
   local wanted

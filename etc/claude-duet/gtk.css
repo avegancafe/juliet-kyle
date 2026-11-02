@@ -1,16 +1,7 @@
-/* Hide the window buttons (minimize, maximize, close) in GNOME Web. */
-windowcontrols {
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
-
-windowcontrols > * {
-  opacity: 0;
-  min-width: 0;
+/* Hide GNOME Web's top bar (back/forward, menus, title, window buttons). */
+headerbar {
   min-height: 0;
-  margin: 0;
   padding: 0;
-  border: none;
-  -gtk-icon-size: 1px; /* 0 crashes GTK */
+  margin-top: -200px;
+  opacity: 0;
 }
