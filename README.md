@@ -23,13 +23,12 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 | File | What it does |
 |------|--------------|
 | `Brewfile` | Personal macOS apps (HEY CLI, Obsidian, Zen, SoundSource, …) and their taps |
-| `DNFfile` | Personal Fedora packages (Chromium for the Claude Duet window, Discord, Steam) |
-| `Flatpakfile` | Personal Flatpak apps (Zen, Slack, Spotify) |
+| `DNFfile` | Personal Fedora packages (Discord, Steam) |
+| `Flatpakfile` | Personal Flatpak apps (Zen, Slack, Spotify, GNOME Web for the Claude Duet web app) |
 | `claude/settings.json` | Personal Claude Code settings layered over Juliet's: model, effort, theme, output style, plan mode, the avegancafe marketplace and its plugins |
-| `home/.local/share/applications/claude-duet.desktop` | Fedora launcher entry: opens claude.ai/duet in its own Chromium app window (Claude Duet has no Linux app) |
 | `home/.config/autostart/claude-duet.desktop` | Fedora login autostart: opens Claude Duet when the session starts (Juliet's niri rule puts it on the coding workspace) |
 | `gitconfig` | `[github] user = avegancafe` |
-| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill |
+| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill; sets up Claude Duet as a GNOME Web app on Fedora (Claude Duet has no Linux app; links to other sites open in Zen; sign in once in its window) |
 | `.env.template` | Keys this setup reads from `~/.config/local/.env`. Blank values only, never secrets |
 
 ## Migrating an existing machine (week of 2026-10-18)

@@ -7,6 +7,7 @@ extension-setup() {
   setup-kyle-sol
   setup-kyle-flipper-udev
   setup-kyle-keyd-dwt-quirk
+  setup-kyle-duet-webapp
 }
 
 # The HEY CLI ships an agent skill, and the skill is the reason this step
@@ -248,4 +249,46 @@ setup-kyle-keyd-dwt-quirk() {
     return
   fi
   notice "Log out and back in for disable-while-typing to apply"
+}
+
+# Claude Duet has no Linux app, so it runs as a GNOME Web (Epiphany Flatpak)
+# web app: its own window, and links to other sites open in the default
+# browser (Zen). GNOME Web's "Install Site as Web Application" fails on niri
+# (the portal install step errors), so this step builds the same thing by
+# hand: a profile dir with the `.app` web-app marker and icon, plus the
+# launcher in the folder the portal would have written to, which is also
+# where GNOME Web looks for it. Sign in to claude.ai once in the new window.
+setup-kyle-duet-webapp() {
+  is-fedora || return 0
+
+  local id=org.gnome.Epiphany.WebApp_claudeduet
+  local profile="$HOME/.var/app/org.gnome.Epiphany/data/$id"
+  local launcher="$HOME/.local/share/xdg-desktop-portal/applications/$id.desktop"
+  local icon="$EXTENSION_DIR/etc/claude-duet/icon.png"
+  local wanted
+  wanted="[Desktop Entry]
+Type=Application
+Name=Claude Duet
+Comment=Claude Duet as a GNOME Web app (links to other sites open in the default browser)
+Exec=flatpak run --command=epiphany org.gnome.Epiphany --application-mode --profile=$profile https://claude.ai/duet
+Icon=$profile/app-icon.png
+StartupNotify=true
+StartupWMClass=$id
+Categories=Network;Chat;
+X-Flatpak=org.gnome.Epiphany"
+
+  if [[ -f "$profile/.app" ]] && cmp -s "$icon" "$profile/app-icon.png" \
+    && [[ "$(cat "$launcher" 2>/dev/null)" == "$wanted" ]]; then
+    skip "Claude Duet web app (up to date)"
+    return
+  fi
+
+  substep "Setting up the Claude Duet web app..."
+  if ! { mkdir -p "$profile" "$(dirname "$launcher")" \
+    && touch "$profile/.app" \
+    && cp "$icon" "$profile/app-icon.png" \
+    && printf '%s\n' "$wanted" > "$launcher"; }; then
+    bootstrap_error "Failed to set up the Claude Duet web app" \
+      "Check $profile and $launcher"
+  fi
 }
