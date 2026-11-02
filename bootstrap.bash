@@ -269,6 +269,14 @@ setup-kyle-duet-webapp() {
   # (fuzzel) only find the web app through this link.
   local menu_link="$HOME/.local/share/applications/$id.desktop"
   local old_link="$HOME/.local/share/applications/claude-duet.desktop"
+  # Inside its sandbox GNOME Web is the only http handler, so it opens other
+  # sites' links itself. Hiding that association sends them through the
+  # portal to the system default browser (Zen).
+  local sandbox_mimeapps="$HOME/.var/app/org.gnome.Epiphany/config/mimeapps.list"
+  local wanted_mimeapps="[Removed Associations]
+x-scheme-handler/http=org.gnome.Epiphany.desktop;
+x-scheme-handler/https=org.gnome.Epiphany.desktop;
+text/html=org.gnome.Epiphany.desktop;"
   local wanted
   wanted="[Desktop Entry]
 Type=Application
@@ -284,6 +292,7 @@ X-Flatpak=org.gnome.Epiphany"
   if [[ -f "$profile/.app" ]] && cmp -s "$icon" "$profile/app-icon.png" \
     && [[ "$(cat "$launcher" 2>/dev/null)" == "$wanted" ]] \
     && [[ "$(readlink "$menu_link")" == "$launcher" ]] \
+    && [[ "$(cat "$sandbox_mimeapps" 2>/dev/null)" == "$wanted_mimeapps" ]] \
     && ! [[ -L "$old_link" && ! -e "$old_link" ]]; then
     skip "Claude Duet web app (up to date)"
     return
@@ -295,7 +304,9 @@ X-Flatpak=org.gnome.Epiphany"
     && cp "$icon" "$profile/app-icon.png" \
     && printf '%s\n' "$wanted" > "$launcher" \
     && mkdir -p "$(dirname "$menu_link")" \
-    && ln -sfn "$launcher" "$menu_link"; }; then
+    && ln -sfn "$launcher" "$menu_link" \
+    && mkdir -p "$(dirname "$sandbox_mimeapps")" \
+    && printf '%s\n' "$wanted_mimeapps" > "$sandbox_mimeapps"; }; then
     bootstrap_error "Failed to set up the Claude Duet web app" \
       "Check $profile and $launcher"
   fi
