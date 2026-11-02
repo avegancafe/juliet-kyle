@@ -1,11 +1,11 @@
 [Desktop Entry]
 # Managed by juliet-kyle. Opens Claude Duet at login, next to the Ghostty that
 # niri starts. Juliet's niri window rule puts it on the "coding" workspace.
+# The web app itself is set up by setup-kyle-duet-webapp in bootstrap.bash.
 Type=Application
 Name=Claude Duet
-Comment=Claude Duet in its own Chromium app window
-Exec=chromium-browser --app=https://claude.ai/duet
-Icon=chromium-browser
+Comment=Claude Duet as a GNOME Web app
+Exec=flatpak run --command=epiphany org.gnome.Epiphany --application-mode --profile=/home/kyle/.var/app/org.gnome.Epiphany/data/org.gnome.Epiphany.WebApp_claudeduet https://claude.ai/duet
+Icon=org.gnome.Epiphany
 Categories=Network;Chat;
-StartupWMClass=chrome-claude.ai__duet-Default
-TryExec=chromium-browser
+StartupWMClass=org.gnome.Epiphany.WebApp_claudeduet

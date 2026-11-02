@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Claude Duet
-Comment=Claude Duet in its own Chromium app window
-Exec=chromium-browser --app=https://claude.ai/duet
-Icon=chromium-browser
-Categories=Network;Chat;
-StartupWMClass=chrome-claude.ai__duet-Default
-TryExec=chromium-browser

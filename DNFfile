@@ -1,8 +1,4 @@
 # Personal Fedora packages, appended to Juliet's DNFfile.
 
-# Chromium provides chromium-browser for the Claude Duet app window
-# (home/.local/share/applications/claude-duet.desktop).
-chromium
-
 discord
 steam

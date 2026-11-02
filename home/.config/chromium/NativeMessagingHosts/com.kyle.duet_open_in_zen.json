@@ -1,7 +1,0 @@
-{
-  "name": "com.kyle.duet_open_in_zen",
-  "description": "Open Claude Duet links in the default browser",
-  "path": "/home/kyle/.local/bin/duet-open-in-zen",
-  "type": "stdio",
-  "allowed_origins": ["chrome-extension://mcbplhkepkmokadankhohjeahihemlkk/"]
-}
