@@ -277,6 +277,10 @@ setup-kyle-duet-webapp() {
 x-scheme-handler/http=org.gnome.Epiphany.desktop;
 x-scheme-handler/https=org.gnome.Epiphany.desktop;
 text/html=org.gnome.Epiphany.desktop;"
+  # Duet opens links through JavaScript, which GNOME Web keeps in the app;
+  # this script turns them into plain link clicks, which it sends to Zen.
+  local user_js="$EXTENSION_DIR/etc/claude-duet/user-javascript.js"
+  local js_schema="org.gnome.Epiphany.web:/org/gnome/epiphany/web-apps/$id/web/"
   local wanted
   wanted="[Desktop Entry]
 Type=Application
@@ -293,6 +297,8 @@ X-Flatpak=org.gnome.Epiphany"
     && [[ "$(cat "$launcher" 2>/dev/null)" == "$wanted" ]] \
     && [[ "$(readlink "$menu_link")" == "$launcher" ]] \
     && [[ "$(cat "$sandbox_mimeapps" 2>/dev/null)" == "$wanted_mimeapps" ]] \
+    && cmp -s "$user_js" "$profile/user-javascript.js" \
+    && [[ "$(flatpak run --command=gsettings org.gnome.Epiphany get "$js_schema" enable-user-js 2>/dev/null)" == true ]] \
     && ! [[ -L "$old_link" && ! -e "$old_link" ]]; then
     skip "Claude Duet web app (up to date)"
     return
@@ -306,7 +312,9 @@ X-Flatpak=org.gnome.Epiphany"
     && mkdir -p "$(dirname "$menu_link")" \
     && ln -sfn "$launcher" "$menu_link" \
     && mkdir -p "$(dirname "$sandbox_mimeapps")" \
-    && printf '%s\n' "$wanted_mimeapps" > "$sandbox_mimeapps"; }; then
+    && printf '%s\n' "$wanted_mimeapps" > "$sandbox_mimeapps" \
+    && cp "$user_js" "$profile/user-javascript.js" \
+    && flatpak run --command=gsettings org.gnome.Epiphany set "$js_schema" enable-user-js true; }; then
     bootstrap_error "Failed to set up the Claude Duet web app" \
       "Check $profile and $launcher"
   fi
