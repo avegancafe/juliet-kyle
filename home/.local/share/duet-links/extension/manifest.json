@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Duet links in Zen",
+  "description": "Opens links clicked in the Claude Duet app window in the default browser (Zen) instead of Chromium.",
+  "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnjCFdJ9bvnO0/yshdUgDA3DEDvljrktPY6O3eS6yNhrEryqAZmp8NG6DPypRCG9eSYktYO0+ZgqyiGqwCzyoGoN3YCLnbr8U7gn56trYDkhFmb7s17whz4xmPUI2Iuk/ZrMDiAjwbwZlebQZi3JFFSUg+6nAqPerYJmUywcyuY/GV/XZr5KrbTBVB7YvL/6ccuKniEm2hS71UAU4OM7qpm2bX/3RRGTcwTHBP0hxYdHgA3Mvsye0/LUooT8HP7fL28yHnsfn08IkBOdiGNZZBtZy3VUwNdaTQ+70Hzhdg+Os/HwjwxndTBUMmMs9H4Kq3Iag8N29BUyegfDSf0mZrQIDAQAB",
+  "permissions": ["webNavigation", "tabs", "nativeMessaging"],
+  "background": { "service_worker": "background.js" }
+}
