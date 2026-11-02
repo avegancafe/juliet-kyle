@@ -1,0 +1,22 @@
+// Kyle's additions to Juliet's niri config. Juliet's config.kdl pulls this in
+// with `include optional=true "~/.config/niri-extension.kdl"`, after its own
+// workspaces and window rules, so everything here comes last.
+
+workspace "gaming"
+
+// Delay steam so noctalia can come up and paint the wallpaper first,
+// without competing for CPU/GPU/IO during login.
+// discord intentionally not autostarted.
+spawn-sh-at-startup "sleep 8 && steam"
+
+window-rule {
+    match app-id="^steam$"
+    open-on-workspace "gaming"
+}
+
+// Claude Duet: the GNOME Web app setup-kyle-duet-webapp builds, autostarted at
+// login (home/.config/autostart/claude-duet.desktop). Sits next to Ghostty.
+window-rule {
+    match app-id="^org\\.gnome\\.Epiphany\\.WebApp_claudeduet$"
+    open-on-workspace "coding"
+}

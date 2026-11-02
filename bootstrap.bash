@@ -6,7 +6,9 @@ extension-setup() {
   setup-kyle-plugin-skills
   setup-kyle-sol
   setup-kyle-flipper-udev
-  setup-kyle-keyd-dwt-quirk
+  setup-kyle-undms
+  setup-kyle-coredump-limits
+  setup-kyle-crash-purge
   setup-kyle-duet-webapp
 }
 
@@ -227,28 +229,124 @@ setup-kyle-flipper-udev() {
   fi
 }
 
-# keyd (Juliet's dual-role Super key) grabs the laptop keyboard and re-emits
-# keys through its own virtual device, which libinput treats as external — so
-# niri's disable-while-typing never pauses the touchpad and stray thumb taps
-# land mid-typing on the XPS. This quirk marks the keyd keyboard internal.
-# libinput reads quirks when a device appears: log out and back in to apply.
-setup-kyle-keyd-dwt-quirk() {
+# DankMaterialShell (dms) was this machine's niri shell before noctalia, and it
+# does not step aside quietly: its user unit is enabled independently of niri's
+# spawn-at-startup, and it claims the org.freedesktop.Notifications bus name, so
+# leaving it installed means two bars and dms owning notifications. Retire it
+# once noctalia (Juliet's shell) is installed.
+setup-kyle-undms() {
   is-fedora || return 0
 
-  local src="$EXTENSION_DIR/etc/libinput/local-overrides.quirks"
-  local dest=/etc/libinput/local-overrides.quirks
-  if cmp -s "$src" "$dest"; then
-    skip "keyd disable-while-typing quirk (up to date)"
+  if ! rpm -q dms &> /dev/null \
+    && ! compgen -G "$HOME/.config/systemd/user/*.wants/dms.service" > /dev/null; then
+    skip "dms already removed"
     return
   fi
 
-  substep "Installing keyd disable-while-typing libinput quirk..."
+  # Never retire the old shell unless the replacement is actually installed,
+  # or a half-bootstrapped machine logs in to a bare compositor.
+  if ! rpm -q noctalia &> /dev/null; then
+    warn "Keeping dms: noctalia is not installed yet (run the packages step first)."
+    return
+  fi
+
+  # The unit was enabled by hand via `systemctl --user add-wants niri.service
+  # dms.service`, which drops a symlink into niri.service.wants, not the
+  # graphical-session.target.wants that [Install] declares. Clear the wants
+  # dirs explicitly rather than relying on `disable` to find it.
+  if [[ "$(systemctl --user is-enabled dms.service 2> /dev/null)" == enabled ]]; then
+    substep "Disabling the dms user service (noctalia is the niri shell)..."
+    systemctl --user disable dms.service &> /dev/null \
+      || warn "Could not disable dms.service: check systemctl --user status dms.service"
+  fi
+  rm -f "$HOME"/.config/systemd/user/*.wants/dms.service
+  systemctl --user daemon-reload &> /dev/null || true
+
+  if rpm -q dms &> /dev/null; then
+    substep "Removing dms (DankMaterialShell)..."
+    # cava came in as a dms dependency, but Juliet's DNFfile declares it
+    # (noctalia's audio visualizer), so dnf keeps it.
+    sudo dnf remove -y dms \
+      || bootstrap_error "Failed to remove dms" \
+        "Inspect the transaction manually: sudo dnf remove --assumeno dms"
+  fi
+
+  if pgrep -x dms &> /dev/null; then
+    notice "dms is still running in this session; it goes away at logout (or: systemctl --user stop dms.service)."
+  fi
+  if [[ -d "$HOME/.config/DankMaterialShell" ]]; then
+    notice "Leftover dms config at ~/.config/DankMaterialShell: remove it by hand if you're done with dms."
+  fi
+}
+
+# Cap how much disk systemd-coredump may use. The drkonqi crash loop (left
+# over from the KDE spin) wrote 4.1GB of cores over ten days without anything
+# noticing; the stock default (10% of the filesystem) is far too generous to
+# act as a warning sign. The caps are in etc/coredump/kyle.conf.
+setup-kyle-coredump-limits() {
+  is-fedora || return 0
+
+  local src="$EXTENSION_DIR/etc/coredump/kyle.conf"
+  local dest=/etc/systemd/coredump.conf.d/kyle.conf
+  # Juliet used to install the same caps under its own name.
+  local old=/etc/systemd/coredump.conf.d/juliet.conf
+  if cmp -s "$src" "$dest" && [[ ! -e "$old" ]]; then
+    skip "systemd-coredump caps (up to date)"
+    return
+  fi
+
+  substep "Capping systemd-coredump disk usage..."
   if ! sudo install -D -m 644 "$src" "$dest"; then
     bootstrap_error "Failed to install $dest" \
       "Copy it manually: sudo install -D -m 644 $src $dest"
     return
   fi
-  notice "Log out and back in for disable-while-typing to apply"
+  if [[ -e "$old" ]]; then
+    sudo rm -f "$old" || warn "Could not remove the old $old"
+  fi
+}
+
+# How long crash evidence is worth keeping: long enough to debug something
+# from "the other day", short enough that a crash loop can't hoard disk
+# between bootstrap runs.
+KYLE_CRASH_RETENTION_DAYS=7
+
+# Age-based purge of crash data. setup-kyle-coredump-limits caps
+# systemd-coredump's size, but nothing bounded abrt's spool: the drkonqi loop
+# left 45 stale reports there. A retention window rather than a one-shot wipe,
+# so it stays idempotent.
+setup-kyle-crash-purge() {
+  is-fedora || return 0
+
+  local stale=0 cores=0
+  if [[ -d /var/spool/abrt ]]; then
+    stale=$(sudo find /var/spool/abrt -mindepth 1 -maxdepth 1 -type d \
+      -mtime +"$KYLE_CRASH_RETENTION_DAYS" 2> /dev/null | wc -l)
+  fi
+  if [[ -d /var/lib/systemd/coredump ]]; then
+    cores=$(find /var/lib/systemd/coredump -type f \
+      -mtime +"$KYLE_CRASH_RETENTION_DAYS" 2> /dev/null | wc -l)
+  fi
+  if (( stale == 0 && cores == 0 )); then
+    skip "no crash data older than ${KYLE_CRASH_RETENTION_DAYS}d"
+    return
+  fi
+
+  if (( stale > 0 )); then
+    substep "Purging $stale abrt report(s) older than ${KYLE_CRASH_RETENTION_DAYS}d..."
+    sudo find /var/spool/abrt -mindepth 1 -maxdepth 1 -type d \
+      -mtime +"$KYLE_CRASH_RETENTION_DAYS" -exec rm -rf {} + \
+      || bootstrap_error "Failed to purge the stale abrt spool" \
+        "Inspect it manually: sudo du -sh /var/spool/abrt/*"
+  fi
+  # coredumpctl has no age-based vacuum of its own, so go by the files.
+  if (( cores > 0 )); then
+    substep "Purging $cores core dump(s) older than ${KYLE_CRASH_RETENTION_DAYS}d..."
+    sudo find /var/lib/systemd/coredump -type f \
+      -mtime +"$KYLE_CRASH_RETENTION_DAYS" -delete \
+      || bootstrap_error "Failed to purge old core dumps" \
+        "Inspect them manually: coredumpctl list"
+  fi
 }
 
 # Claude Duet has no Linux app, so it runs as a GNOME Web (Epiphany Flatpak)
