@@ -3,6 +3,7 @@
 
 extension-setup() {
   setup-kyle-hey
+  setup-kyle-plugin-skills
   setup-kyle-sol
   setup-kyle-flipper-udev
 }
@@ -78,6 +79,81 @@ setup-kyle-hey() {
   spin "Installing the HEY agent skill..." "$hey_bin" skill install \
     || bootstrap_error "Failed to install the HEY agent skill" \
       "Run manually: hey skill install"
+}
+
+# The avegancafe-marketplace plugins (enabled in claude/settings.json) ship
+# skills that only Claude Code sees: it loads them from the plugin cache, which
+# other harnesses (Raycast AI, opencode, Codex) never look in. This step links
+# each skill of every enabled, installed avegancafe plugin into
+# ~/.agents/skills, the shared root those harnesses read. Not ~/.claude/skills:
+# Claude Code already loads these as plugin skills (`avegancafe:slurp`), so a
+# second copy there would list every one twice.
+#
+# Links point at the installed version's cache dir, so a plugin update leaves
+# them on the old version (still on disk) until the next run re-points them.
+# Only links into the avegancafe cache count as this step's: a real skill
+# folder with the same name is left alone with a warning, and links whose
+# skill or plugin has gone are removed. Claude Code installs enabled plugins
+# on its first launch, so a fresh machine needs it opened once, then a re-run.
+setup-kyle-plugin-skills() {
+  local settings="$HOME/.claude/settings.json"
+  local installed="$HOME/.claude/plugins/installed_plugins.json"
+  local cache="$HOME/.claude/plugins/cache/avegancafe-marketplace"
+  local dest="$HOME/.agents/skills"
+
+  if ! command -v jq > /dev/null 2>&1; then
+    warn "jq not found — skipping avegancafe plugin skills."
+    return
+  fi
+  if [[ ! -f "$settings" || ! -f "$installed" ]]; then
+    skip "avegancafe plugin skills (open Claude Code once to install its plugins, then run juliet-bootstrap --enable=extension)"
+    return
+  fi
+
+  # One "name<TAB>dir" line per skill to link.
+  local wanted="" plugin path skill
+  while IFS=$'\t' read -r plugin path; do
+    if [[ -z "$path" || ! -d "$path" ]]; then
+      warn "$plugin is enabled but not installed — open Claude Code, then run juliet-bootstrap --enable=extension"
+      continue
+    fi
+    for skill in "$path"/skills/*/; do
+      [[ -f "$skill/SKILL.md" ]] || continue
+      skill="${skill%/}"
+      wanted+="$(basename "$skill")"$'\t'"$skill"$'\n'
+    done
+  done < <(jq -r --slurpfile inst "$installed" '
+    (.enabledPlugins // {}) | to_entries[]
+    | select(.value == true and (.key | endswith("@avegancafe-marketplace")))
+    | "\(.key)\t\((($inst[0].plugins[.key] // [])[0].installPath) // "")"' "$settings")
+
+  mkdir -p "$dest"
+  local changed=0 name target link
+  while IFS=$'\t' read -r name target; do
+    [[ -n "$name" ]] || continue
+    link="$dest/$name"
+    if [[ -L "$link" && "$(readlink "$link")" == "$target" ]]; then
+      continue
+    elif [[ -L "$link" && "$(readlink "$link")" == "$cache/"* ]] || [[ ! -e "$link" && ! -L "$link" ]]; then
+      ln -sfn "$target" "$link" && changed=$((changed + 1))
+    else
+      warn "$link already exists and isn't an avegancafe plugin link — leaving it; remove it to link the plugin's $name skill."
+    fi
+  done <<< "$wanted"
+
+  # Drop this step's links whose skill is no longer wanted (or no longer exists).
+  for link in "$dest"/*; do
+    [[ -L "$link" && "$(readlink "$link")" == "$cache/"* ]] || continue
+    if ! grep -q "^$(basename "$link")"$'\t' <<< "$wanted"; then
+      rm "$link" && changed=$((changed + 1))
+    fi
+  done
+
+  if ((changed)); then
+    notice "Linked avegancafe plugin skills into $dest ($changed changed)"
+  else
+    skip "avegancafe plugin skills (up to date)"
+  fi
 }
 
 # Sol (ospfranco/sol) is installed by the Brewfile cask. Its portable settings
