@@ -6,6 +6,7 @@ extension-setup() {
   setup-kyle-plugin-skills
   setup-kyle-sol
   setup-kyle-flipper-udev
+  setup-kyle-keyd-dwt-quirk
 }
 
 # The HEY CLI ships an agent skill, and the skill is the reason this step
@@ -223,4 +224,28 @@ setup-kyle-flipper-udev() {
     bootstrap_error "Failed to reload udev rules" \
       "Run: sudo udevadm control --reload-rules, then replug the Flipper"
   fi
+}
+
+# keyd (Juliet's dual-role Super key) grabs the laptop keyboard and re-emits
+# keys through its own virtual device, which libinput treats as external — so
+# niri's disable-while-typing never pauses the touchpad and stray thumb taps
+# land mid-typing on the XPS. This quirk marks the keyd keyboard internal.
+# libinput reads quirks when a device appears: log out and back in to apply.
+setup-kyle-keyd-dwt-quirk() {
+  is-fedora || return 0
+
+  local src="$EXTENSION_DIR/etc/libinput/local-overrides.quirks"
+  local dest=/etc/libinput/local-overrides.quirks
+  if cmp -s "$src" "$dest"; then
+    skip "keyd disable-while-typing quirk (up to date)"
+    return
+  fi
+
+  substep "Installing keyd disable-while-typing libinput quirk..."
+  if ! sudo install -D -m 644 "$src" "$dest"; then
+    bootstrap_error "Failed to install $dest" \
+      "Copy it manually: sudo install -D -m 644 $src $dest"
+    return
+  fi
+  notice "Log out and back in for disable-while-typing to apply"
 }
