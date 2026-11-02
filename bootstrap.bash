@@ -265,6 +265,10 @@ setup-kyle-duet-webapp() {
   local profile="$HOME/.var/app/org.gnome.Epiphany/data/$id"
   local launcher="$HOME/.local/share/xdg-desktop-portal/applications/$id.desktop"
   local icon="$EXTENSION_DIR/etc/claude-duet/icon.png"
+  # The portal folder isn't on XDG_DATA_DIRS under niri, so app launchers
+  # (fuzzel) only find the web app through this link.
+  local menu_link="$HOME/.local/share/applications/$id.desktop"
+  local old_link="$HOME/.local/share/applications/claude-duet.desktop"
   local wanted
   wanted="[Desktop Entry]
 Type=Application
@@ -278,7 +282,9 @@ Categories=Network;Chat;
 X-Flatpak=org.gnome.Epiphany"
 
   if [[ -f "$profile/.app" ]] && cmp -s "$icon" "$profile/app-icon.png" \
-    && [[ "$(cat "$launcher" 2>/dev/null)" == "$wanted" ]]; then
+    && [[ "$(cat "$launcher" 2>/dev/null)" == "$wanted" ]] \
+    && [[ "$(readlink "$menu_link")" == "$launcher" ]] \
+    && ! [[ -L "$old_link" && ! -e "$old_link" ]]; then
     skip "Claude Duet web app (up to date)"
     return
   fi
@@ -287,8 +293,14 @@ X-Flatpak=org.gnome.Epiphany"
   if ! { mkdir -p "$profile" "$(dirname "$launcher")" \
     && touch "$profile/.app" \
     && cp "$icon" "$profile/app-icon.png" \
-    && printf '%s\n' "$wanted" > "$launcher"; }; then
+    && printf '%s\n' "$wanted" > "$launcher" \
+    && mkdir -p "$(dirname "$menu_link")" \
+    && ln -sfn "$launcher" "$menu_link"; }; then
     bootstrap_error "Failed to set up the Claude Duet web app" \
       "Check $profile and $launcher"
+  fi
+  # Remove the old Chromium launcher's link once its target is gone.
+  if [[ -L "$old_link" && ! -e "$old_link" ]]; then
+    rm -f "$old_link"
   fi
 }
