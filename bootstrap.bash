@@ -281,6 +281,10 @@ text/html=org.gnome.Epiphany.desktop;"
   # this script turns them into plain link clicks, which it sends to Zen.
   local user_js="$EXTENSION_DIR/etc/claude-duet/user-javascript.js"
   local js_schema="org.gnome.Epiphany.web:/org/gnome/epiphany/web-apps/$id/web/"
+  # Hides the window buttons in GNOME Web only (niri tiles it anyway); Juliet
+  # keeps them in every other GTK app.
+  local gtk_css="$EXTENSION_DIR/etc/claude-duet/gtk.css"
+  local sandbox_gtk_css="$HOME/.var/app/org.gnome.Epiphany/config/gtk-4.0/gtk.css"
   local wanted
   wanted="[Desktop Entry]
 Type=Application
@@ -298,6 +302,7 @@ X-Flatpak=org.gnome.Epiphany"
     && [[ "$(readlink "$menu_link")" == "$launcher" ]] \
     && [[ "$(cat "$sandbox_mimeapps" 2>/dev/null)" == "$wanted_mimeapps" ]] \
     && cmp -s "$user_js" "$profile/user-javascript.js" \
+    && cmp -s "$gtk_css" "$sandbox_gtk_css" \
     && [[ "$(flatpak run --command=gsettings org.gnome.Epiphany get "$js_schema" enable-user-js 2>/dev/null)" == true ]] \
     && ! [[ -L "$old_link" && ! -e "$old_link" ]]; then
     skip "Claude Duet web app (up to date)"
@@ -314,7 +319,9 @@ X-Flatpak=org.gnome.Epiphany"
     && mkdir -p "$(dirname "$sandbox_mimeapps")" \
     && printf '%s\n' "$wanted_mimeapps" > "$sandbox_mimeapps" \
     && cp "$user_js" "$profile/user-javascript.js" \
-    && flatpak run --command=gsettings org.gnome.Epiphany set "$js_schema" enable-user-js true; }; then
+    && flatpak run --command=gsettings org.gnome.Epiphany set "$js_schema" enable-user-js true \
+    && mkdir -p "$(dirname "$sandbox_gtk_css")" \
+    && cp "$gtk_css" "$sandbox_gtk_css"; }; then
     bootstrap_error "Failed to set up the Claude Duet web app" \
       "Check $profile and $launcher"
   fi
