@@ -54,13 +54,36 @@
     "kitchen-brigade@avegancafe-marketplace": true,
     "beadwork@avegancafe-marketplace": true,
     "avegancafe@avegancafe-marketplace": true,
-    "session-management@avegancafe-marketplace": true
+    "session-management@avegancafe-marketplace": true,
+    "j2-presentations@j2-claude-plugins": true,
+    "python-lsp@j2-claude-plugins": true,
+    "typescript-lsp@j2-claude-plugins": true,
+    "j2-eng@j2-claude-plugins": true,
+    "superpowers@j2-claude-plugins": true,
+    "codex@j2-claude-plugins": true,
+    "dbt@j2-claude-plugins": true,
+    "playwright@j2-claude-plugins": true,
+    "mattpocock-skills@j2-claude-plugins": true,
+    "launchdarkly@j2-claude-plugins": true,
+    "in-my-voice@j2-claude-plugins": true,
+    "j2-sandbox@j2-claude-plugins": true,
+    "typesafe@j2-claude-plugins": true,
+    "diagram-design@j2-claude-plugins": true,
+    "compliance@j2-claude-plugins": true,
+    "sentry@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "avegancafe-marketplace": {
       "source": {
         "source": "git",
         "url": "https://github.com/avegancafe/avegancafe-marketplace.git"
+      },
+      "autoUpdate": true
+    },
+    "j2-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "j2-health/claude-plugins"
       },
       "autoUpdate": true
     }
