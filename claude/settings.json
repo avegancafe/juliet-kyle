@@ -41,6 +41,7 @@
   "permissions": {
     "allow": [
       "mcp__claude_ai_Linear__get_issue",
+      "mcp__a76988b1-f010-48b5-9352-fa81ef3a2e27__get_issue",
       "mcp__notion__notion-search",
       "mcp__notion__notion-fetch",
       "mcp__notion__notion-get-comments",
