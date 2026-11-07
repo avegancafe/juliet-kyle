@@ -29,7 +29,7 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 | `home/.config/autostart/claude-duet.desktop` | Fedora login autostart: opens Claude Duet when the session starts (`niri-extension.kdl` puts it on the coding workspace) |
 | `home/.config/autostart/org.freedesktop.problems.applet.desktop` | Hides abrt's "Oops!" crash popups at login (abrtd itself keeps running) |
 | `home/.config/niri-extension.kdl` | Additions to Juliet's niri config, which includes this file: the "gaming" workspace, Steam at login, and the Steam and Claude Duet window rules |
-| `home/.config/mimeapps.list` | Replaces Juliet's: Zen is the default browser |
+| `config/mimeapps.list` | Replaces Juliet's: Zen is the default browser |
 | `etc/1password/custom_allowed_browsers` | Allowlist that lets the 1Password desktop app accept Zen (Fedora; installed by `bootstrap.bash`) |
 | `etc/keeb/` | Layouts and VIA definitions for Kyle's keyboards, and Karabiner rules |
 | `gitconfig` | `[github] user = avegancafe` |
