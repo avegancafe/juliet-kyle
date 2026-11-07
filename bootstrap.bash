@@ -267,7 +267,7 @@ setup-kyle-zen-profile() {
 # 1Password for Linux only lets its browser extension use the desktop app
 # (unlock with fingerprint/system auth) from browsers it recognizes; Zen isn't
 # one, so it goes in this allowlist. 1Password wants the file owned by root,
-# and reads it only at startup.
+# and checks it each time a browser connects (no restart needed).
 setup-kyle-1password-browsers() {
   is-fedora || return 0
 
@@ -285,7 +285,7 @@ setup-kyle-1password-browsers() {
       "Copy it manually: sudo install -D -o root -g root -m 755 $src $dest"
     return
   fi
-  notice "Quit 1Password from its tray icon and reopen it to load the browser allowlist"
+  notice "Restart Zen if its 1Password extension still asks for your password"
 }
 
 # DankMaterialShell (dms) was this machine's niri shell before noctalia, and it
