@@ -23,16 +23,17 @@ then run `juliet-bootstrap`. To run just this extension's setup steps, use
 | File | What it does |
 |------|--------------|
 | `Brewfile` | Personal macOS apps (HEY CLI, Obsidian, Zen, SoundSource, …) and their taps |
-| `DNFfile` | Personal Fedora packages (Discord, Steam) |
-| `Flatpakfile` | Personal Flatpak apps (Zen, Slack, Spotify, GNOME Web for the Claude Duet web app) |
+| `DNFfile` | Personal Fedora packages (Zen from the `sneexy/zen-browser` COPR, Discord, Steam) |
+| `Flatpakfile` | Personal Flatpak apps (Slack, Spotify, GNOME Web for the Claude Duet web app) |
 | `claude/settings.json` | Personal Claude Code settings layered over Juliet's: model, effort, theme, output style, plan mode, the avegancafe marketplace and its plugins |
 | `home/.config/autostart/claude-duet.desktop` | Fedora login autostart: opens Claude Duet when the session starts (`niri-extension.kdl` puts it on the coding workspace) |
 | `home/.config/autostart/org.freedesktop.problems.applet.desktop` | Hides abrt's "Oops!" crash popups at login (abrtd itself keeps running) |
 | `home/.config/niri-extension.kdl` | Additions to Juliet's niri config, which includes this file: the "gaming" workspace, Steam at login, and the Steam and Claude Duet window rules |
 | `home/.config/mimeapps.list` | Replaces Juliet's: Zen is the default browser |
+| `etc/1password/custom_allowed_browsers` | Allowlist that lets the 1Password desktop app accept Zen (Fedora; installed by `bootstrap.bash`) |
 | `etc/keeb/` | Layouts and VIA definitions for Kyle's keyboards, and Karabiner rules |
 | `gitconfig` | `[github] user = avegancafe` |
-| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill; sets up Claude Duet as a GNOME Web app on Fedora (Claude Duet has no Linux app; links to other sites open in Zen; sign in once in its window); Flipper Zero udev rule; cleanup left over from this machine's KDE-spin and DankMaterialShell days (removes dms, caps core dumps, purges crash data older than 7 days) |
+| `bootstrap.bash` | `extension-setup`: installs the HEY CLI on Fedora, its shell completions, and its agent skill; sets up Claude Duet as a GNOME Web app on Fedora (Claude Duet has no Linux app; links to other sites open in Zen; sign in once in its window); Flipper Zero udev rule; on Fedora, copies the old Flatpak Zen profile to `~/.zen` once and installs `etc/1password/custom_allowed_browsers` so 1Password's extension in Zen can unlock through the desktop app; cleanup left over from this machine's KDE-spin and DankMaterialShell days (removes dms, caps core dumps, purges crash data older than 7 days) |
 | `.env.template` | Keys this setup reads from `~/.config/local/.env`. Blank values only, never secrets |
 
 ## Migrating an existing machine (week of 2026-10-18)

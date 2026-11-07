@@ -1,5 +1,5 @@
 # juliet-kyle mimeapps.list: replaces Juliet's, to make Zen the default
-# browser (Zen comes from this extension's Flatpakfile).
+# browser (Zen comes from this extension's DNFfile).
 #
 # Overrides the distro defaults in /usr/share/applications/mimeapps.list, which
 # is where Fedora's firefox-as-default-browser comes from.
@@ -14,8 +14,8 @@
 # on its own.
 
 [Default Applications]
-x-scheme-handler/http=app.zen_browser.zen.desktop
-x-scheme-handler/https=app.zen_browser.zen.desktop
-text/html=app.zen_browser.zen.desktop
-application/xhtml+xml=app.zen_browser.zen.desktop
+x-scheme-handler/http=zen-browser.desktop
+x-scheme-handler/https=zen-browser.desktop
+text/html=zen-browser.desktop
+application/xhtml+xml=zen-browser.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop

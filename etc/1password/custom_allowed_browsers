@@ -1,0 +1,10 @@
+# Installed to /etc/1password/custom_allowed_browsers by juliet-kyle's
+# setup-kyle-1password-browsers step (root:root, 0755).
+#
+# 1Password for Linux only accepts browser-extension connections from browsers
+# it knows; this adds Zen (the COPR build in /opt/zen). 1Password checks the
+# executable name, and Zen's /opt/zen holds both zen and zen-bin, so list both.
+# Lines starting with `#` are ignored.
+
+zen
+zen-bin

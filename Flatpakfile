@@ -1,6 +1,5 @@
 # Kyle's personal Flatpak apps, appended to Juliet's Flatpakfile (which
 # declares the flathub remote).
-app.zen_browser.zen
 com.slack.Slack
 com.spotify.Client
 org.gnome.Epiphany

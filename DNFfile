@@ -1,4 +1,9 @@
 # Personal Fedora packages, appended to Juliet's DNFfile.
 
+# Zen comes from this COPR rather than Flathub: 1Password's browser integration
+# (unlock with the desktop app / fingerprint) can't reach a Flatpak browser.
+copr sneexy/zen-browser
+zen-browser
+
 discord
 steam

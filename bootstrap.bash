@@ -6,6 +6,8 @@ extension-setup() {
   setup-kyle-plugin-skills
   setup-kyle-sol
   setup-kyle-flipper-udev
+  setup-kyle-zen-profile
+  setup-kyle-1password-browsers
   setup-kyle-undms
   setup-kyle-coredump-limits
   setup-kyle-crash-purge
@@ -227,6 +229,63 @@ setup-kyle-flipper-udev() {
     bootstrap_error "Failed to reload udev rules" \
       "Run: sudo udevadm control --reload-rules, then replug the Flipper"
   fi
+}
+
+# Zen moved from the Flathub Flatpak to the COPR build (see DNFfile). The
+# Flatpak kept its profiles in ~/.var/app/app.zen_browser.zen/.zen, and the
+# native build reads ~/.zen, so copy them over once. Copy, never move: the
+# Flatpak's data stays until it's uninstalled by hand. Zen must be closed so
+# the copy isn't taken mid-write.
+setup-kyle-zen-profile() {
+  is-fedora || return 0
+
+  local src="$HOME/.var/app/app.zen_browser.zen/.zen"
+  local dest="$HOME/.zen"
+  if [[ -e "$dest" ]]; then
+    skip "Zen profile (~/.zen exists)"
+    return
+  fi
+  if [[ ! -d "$src" ]]; then
+    skip "Zen profile (no Flatpak profile to copy)"
+    return
+  fi
+  if pgrep -x zen >/dev/null || pgrep -x zen-bin >/dev/null; then
+    warn "Zen is running: quit it, then re-run juliet-bootstrap --enable=extension to copy its Flatpak profile to ~/.zen"
+    return
+  fi
+
+  substep "Copying Zen's Flatpak profile to ~/.zen..."
+  if ! cp -a "$src" "$dest"; then
+    rm -rf "$dest"
+    bootstrap_error "Failed to copy $src to $dest" \
+      "Quit Zen and copy it manually: cp -a $src $dest"
+    return
+  fi
+  notice "If Zen opens a blank profile, pick your old one in about:profiles"
+}
+
+# 1Password for Linux only lets its browser extension use the desktop app
+# (unlock with fingerprint/system auth) from browsers it recognizes; Zen isn't
+# one, so it goes in this allowlist. 1Password wants the file owned by root,
+# and reads it only at startup.
+setup-kyle-1password-browsers() {
+  is-fedora || return 0
+
+  local src="$EXTENSION_DIR/etc/1password/custom_allowed_browsers"
+  local dest=/etc/1password/custom_allowed_browsers
+  if cmp -s "$src" "$dest" \
+    && [[ "$(stat -c '%U:%G %a' "$dest")" == "root:root 755" ]]; then
+    skip "1Password browser allowlist (up to date)"
+    return
+  fi
+
+  substep "Installing 1Password browser allowlist..."
+  if ! sudo install -D -o root -g root -m 755 "$src" "$dest"; then
+    bootstrap_error "Failed to install $dest" \
+      "Copy it manually: sudo install -D -o root -g root -m 755 $src $dest"
+    return
+  fi
+  notice "Quit 1Password from its tray icon and reopen it to load the browser allowlist"
 }
 
 # DankMaterialShell (dms) was this machine's niri shell before noctalia, and it
