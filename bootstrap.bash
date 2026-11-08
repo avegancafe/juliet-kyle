@@ -10,6 +10,7 @@ extension-setup() {
   setup-kyle-coredump-limits
   setup-kyle-crash-purge
   setup-kyle-duet-webapp
+  setup-kyle-rex-keep-claude-rc
 }
 
 # The HEY CLI ships an agent skill, and the skill is the reason this step
@@ -427,4 +428,34 @@ X-Flatpak=org.gnome.Epiphany"
   if [[ -L "$old_link" && ! -e "$old_link" ]]; then
     rm -f "$old_link"
   fi
+}
+
+# Keeps `claude rc` alive in the Rex pane labelled claude-rc (session tmp).
+# A LaunchAgent runs etc/rex-keep-claude-rc/rex-keep-claude-rc every 60s; the
+# script asks rex what's in the pane's foreground and, when claude has exited
+# back to the shell, types `claude rc` again (or reopens the tab if it's gone).
+# The plist is rendered from a template so it points at $EXTENSION_DIR, then
+# (re)loaded only when it changed or isn't loaded. macOS only: Rex is a Mac app.
+setup-kyle-rex-keep-claude-rc() {
+  is-macos || return 0
+
+  local label=com.kyle.rex-keep-claude-rc
+  local src="$EXTENSION_DIR/etc/rex-keep-claude-rc"
+  local plist="$HOME/Library/LaunchAgents/$label.plist"
+  local domain="gui/$(id -u)"
+  local wanted
+  wanted=$(sed -e "s#__SCRIPT__#$src/rex-keep-claude-rc#" -e "s#__HOME__#$HOME#g" "$src/$label.plist")
+
+  if [[ -f "$plist" && "$(cat "$plist")" == "$wanted" ]] \
+    && launchctl print "$domain/$label" > /dev/null 2>&1; then
+    skip "rex claude rc watcher (up to date)"
+    return
+  fi
+
+  substep "Installing the rex claude rc watcher..."
+  mkdir -p "$(dirname "$plist")"
+  launchctl bootout "$domain/$label" > /dev/null 2>&1 || true
+  printf '%s\n' "$wanted" > "$plist"
+  launchctl bootstrap "$domain" "$plist" \
+    || bootstrap_error "Failed to load $label" "Try: launchctl bootstrap $domain $plist"
 }

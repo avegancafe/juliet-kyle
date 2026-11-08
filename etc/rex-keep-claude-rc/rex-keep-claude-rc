@@ -1,0 +1,68 @@
+#!/bin/bash
+# Keep `claude rc` running in the Rex pane labelled claude-rc (session tmp).
+# Run every minute from launchd (com.kyle.rex-keep-claude-rc) or cron.
+set -o pipefail
+
+REX="$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+SESSION="${REX_KEEP_SESSION:-tmp}"
+LABEL="${REX_KEEP_LABEL:-claude-rc}"
+CMD="${REX_KEEP_CMD:-claude rc}"
+CWD="${REX_KEEP_CWD:-$HOME/workspace}"
+LOG="$HOME/Library/Logs/rex-keep-claude-rc.log"
+STAMPS="$HOME/Library/Caches/rex-keep-claude-rc.stamps"
+MAX_RESTARTS=3   # within WINDOW seconds
+WINDOW=300
+
+export PATH="/opt/homebrew/bin:$HOME/.local/bin:/usr/bin:/bin:$PATH"
+
+log() { printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$*" >>"$LOG"; }
+rex() { "$REX" --autostart=false "$@"; }
+
+# Rex server not running → nothing to do.
+rex whoami >/dev/null 2>&1 || exit 0
+
+# Backoff: refuse to restart more than MAX_RESTARTS times in WINDOW seconds.
+now=$(date +%s)
+recent=0
+if [ -f "$STAMPS" ]; then
+  awk -v c=$((now - WINDOW)) '$1 >= c' "$STAMPS" >"$STAMPS.tmp" && mv "$STAMPS.tmp" "$STAMPS"
+  recent=$(wc -l <"$STAMPS" | tr -d ' ')
+fi
+note_restart() { echo "$now" >>"$STAMPS"; }
+if [ "$recent" -ge "$MAX_RESTARTS" ]; then
+  log "backoff: $recent restarts in last ${WINDOW}s, skipping"
+  exit 0
+fi
+
+# Make sure the session exists.
+if ! rex session inspect "$SESSION" --json >/dev/null 2>&1; then
+  rex new "$SESSION" -c "$CWD" --json >/dev/null || { log "failed to create session $SESSION"; exit 1; }
+  log "created session $SESSION"
+fi
+
+block=$(rex block ls -s "$SESSION" --json 2>/dev/null |
+  jq -r --arg l "$LABEL" '[.blocks[] | select(.label == $l)][0].block_id // empty')
+
+if [ -z "$block" ]; then
+  # Tab is gone: open a shell tab, label it, and start the command in it.
+  created=$(rex window new -s "$SESSION" "$LABEL" -c "$CWD" --focus=false --json) || { log "failed to open tab"; exit 1; }
+  block=$(printf '%s' "$created" | jq -er '.block_ids[0]') || { log "no block id in: $created"; exit 1; }
+  rex block rename -s "$SESSION" "$block" "$LABEL" >/dev/null
+  sleep 2 # let the login shell come up before typing
+  rex send -s "$SESSION" -b "$block" "$CMD"$'\r' >/dev/null
+  note_restart
+  log "recreated tab $block and started: $CMD"
+  exit 0
+fi
+
+fg=$(rex block call -s "$SESSION" -b "$block" process 2>/dev/null | jq -r '.foreground.argv0 // .foreground.name // empty')
+case "$fg" in
+  claude) exit 0 ;;                          # alive
+  fish | -fish | zsh | -zsh | bash | -bash | sh | -sh | login)
+    rex send -s "$SESSION" -b "$block" "$CMD"$'\r' >/dev/null
+    note_restart
+    log "foreground was '$fg' in $block; restarted: $CMD"
+    ;;
+  "") log "could not read process for $block" ;;
+  *) : ;;                                    # something else is in the foreground; leave it alone
+esac
